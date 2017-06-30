@@ -12,6 +12,7 @@ Nuget：Install-Package Vino.Core.TimedTask
         app.UseTimedTask();
     
     3. 创建一个TestTask类，添加VinoTimedTask标注，添加一个Run方法，添加Invoke标注
+    ```c#
         [VinoTimedTask]
         public class TestTask
         {
@@ -24,7 +25,7 @@ Nuget：Install-Package Vino.Core.TimedTask
 
             ...
         }
-
+    ```
         Invoke标注有以下属性
             IsEnabled：是否有效，默认为true
             AutoReset：设置是执行一次（false）还是一直执行(true)，默认为true
@@ -43,6 +44,7 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
 
 * 使用方法
     1. 创建MyDbContext
+    ```c#
         public class MyDbContext: DbContext, IDbContext, ITimedTaskContext
         {
             public MyDbContext(DbContextOptions<MyDbContext> options)
@@ -56,7 +58,8 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
             {
             }
         }
-    
+    ```
+
     2. 在Startup的ConfigureServices方法中
         services.AddTimedTask().AddEntityFrameworkTimedTask<MyDbContext>();
     
@@ -64,6 +67,7 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
         Identifier设置为：类名.方法名，如Test.TestTask.RunForDb
     
     4. 创建一个TestTask类，添加VinoTimedTask标注，添加一个RunForDb方法
+    ```c#
         [VinoTimedTask]
         public class TestTask
         {
@@ -75,7 +79,7 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
 
             ...
         }
-
+    ```
 
 
 本项目部分代码参照并引用了Pomelo.AspNetCore.TimedJob相关代码
