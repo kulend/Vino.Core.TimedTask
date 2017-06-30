@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.0.1.0</Version>
+    <Authors>kulend@qq.com</Authors>
+    <Company>www.vinotec.cn</Company>
+    <Product>Vino.Core</Product>
+    <Description>于.NET CORE的一个定时任务运行管理组件。</Description>
+    <Copyright>Copyright © vinotec.cn</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
