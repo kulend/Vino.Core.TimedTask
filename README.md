@@ -1,19 +1,28 @@
 # Vino.Core.TimedTask
 基于.NET CORE的一个定时任务运行管理组件。
 
+* 版本发布
+    [2017.07.03] 版本 1.0.1.1
+        VinoTimedTask标注改为TimedTask。
+
+
 * 安装方法
 Nuget：Install-Package Vino.Core.TimedTask
 
 * 使用方法
     1. 在Startup的ConfigureServices方法中
-        services.AddTimedTask();
-    
-    2. 在Startup的Configure方法中
-        app.UseTimedTask();
-    
-    3. 创建一个TestTask类，添加VinoTimedTask标注，添加一个Run方法，添加Invoke标注
     ```c#
-        [VinoTimedTask]
+        services.AddTimedTask();
+    ```
+
+    2. 在Startup的Configure方法中
+    ```c#
+        app.UseTimedTask();
+    ```
+
+    3. 创建一个TestTask类，添加TimedTask标注，添加一个Run方法，添加Invoke标注
+    ```c#
+        [TimedTask]
         public class TestTask
         {
             [Invoke(Interval = 5000)]
@@ -61,8 +70,9 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
     ```
 
     2. 在Startup的ConfigureServices方法中
+    ```c#
         services.AddTimedTask().AddEntityFrameworkTimedTask<MyDbContext>();
-    
+    ```
     3. 进行dotnet ef migrations add xxx, dotnet ef database update，在表中配置事务，其中
         Identifier设置为：类名.方法名，如Test.TestTask.RunForDb
     

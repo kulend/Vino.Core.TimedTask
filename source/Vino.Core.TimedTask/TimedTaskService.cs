@@ -16,6 +16,10 @@ namespace Vino.Core.TimedTask
 {
     public class TimedTaskService
     {
+        private static bool IsZh = "zh-cn".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase) 
+                                   || "zh-tw".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase)
+                                   || "zh-hk".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase);
+
         private ILogger logger { get; set; }
 
         private IAssemblyLocator locator { get; set; }
@@ -39,7 +43,7 @@ namespace Vino.Core.TimedTask
             foreach (var x in asm)
             {
                 //查找带有VinoTimedTaskAttribute的类
-                var types = x.DefinedTypes.Where(y => y.GetCustomAttribute(typeof(VinoTimedTaskAttribute), true) != null);
+                var types = x.DefinedTypes.Where(y => y.GetCustomAttribute(typeof(TimedTaskAttribute), true) != null);
                 foreach (var type in types)
                 {
                     JobTypeCollection.Add(type);
@@ -186,7 +190,7 @@ namespace Vino.Core.TimedTask
 
             var instance = Activator.CreateInstance(clazz.AsType(), argtypes);
             var paramtypes = method.GetParameters().Select(x => services.GetService(x.ParameterType)).ToArray();
-            var taskAttr = clazz.GetCustomAttribute<VinoTimedTaskAttribute>();
+            var taskAttr = clazz.GetCustomAttribute<TimedTaskAttribute>();
             var taskName = (taskAttr != null && !string.IsNullOrEmpty(taskAttr.Name)) ? taskAttr.Name : clazz.Name;
             var singleTaskAttr = method.GetCustomAttribute<SingleTaskAttribute>(true);
             lock (this)
@@ -200,14 +204,27 @@ namespace Vino.Core.TimedTask
             }
             try
             {
-                logger?.LogInformation($"[事务]{taskName} 开始执行...");
-                Debug.WriteLine($"[事务]{taskName} 开始执行...");
+                if (IsZh)
+                {
+                    logger?.LogInformation($"[事务]{taskName} 开始执行...");
+                }
+                else
+                {
+                    logger?.LogInformation($"[Task]{taskName} Invoking...");
+                }
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
                 method.Invoke(instance, paramtypes);
                 sw.Stop();
-                logger?.LogInformation($"[事务]{taskName} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
-                Debug.WriteLine($"[事务]{taskName} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
+                if (IsZh)
+                {
+                    logger?.LogInformation($"[事务]{taskName} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
+                }
+                else
+                {
+                    logger?.LogInformation($"[Task]{taskName} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
+                }
+                Debug.WriteLine($"[Task]{taskName} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
             }
             catch (Exception ex)
             {

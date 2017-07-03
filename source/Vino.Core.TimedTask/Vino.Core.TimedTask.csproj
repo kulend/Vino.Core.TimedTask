@@ -4,13 +4,19 @@
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <Company>www.vinotec.cn</Company>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Description>于.NET CORE的一个定时任务运行管理组件。</Description>
+    <Description>基于.NET CORE的一个定时任务运行管理组件。</Description>
     <Copyright>Copyright © vinotec.cn</Copyright>
     <Authors>kulend@qq.com</Authors>
     <Product>Vino.Core</Product>
-    <PackageReleaseNotes>.net core timed task manage.</PackageReleaseNotes>
-    <PackageTags>Vino</PackageTags>
-    <Version>1.0.1.0</Version>
+    <PackageReleaseNotes>基于.NET CORE的一个定时任务运行管理组件。</PackageReleaseNotes>
+    <PackageTags>Vino Task .NetCore TimedTask</PackageTags>
+    <Version>1.0.1.1</Version>
+    <PackageProjectUrl>https://github.com/kulend/Vino.Core.TimedTask</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/kulend/Vino.Core.TimedTask/blob/master/LICENSE</PackageLicenseUrl>
+    <AssemblyVersion>1.0.1.1</AssemblyVersion>
+    <FileVersion>1.0.1.1</FileVersion>
+    <RepositoryUrl>https://github.com/kulend/Vino.Core.TimedTask</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

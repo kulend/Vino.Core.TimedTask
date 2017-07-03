@@ -5,15 +5,15 @@ using System.Text;
 namespace Vino.Core.TimedTask.Attribute
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class VinoTimedTaskAttribute : System.Attribute
+    public class TimedTaskAttribute : System.Attribute
     {
         public string Name { set; get; }
 
-        public VinoTimedTaskAttribute()
+        public TimedTaskAttribute()
         {
         }
 
-        public VinoTimedTaskAttribute(string name)
+        public TimedTaskAttribute(string name)
         {
             this.Name = name;
         }
