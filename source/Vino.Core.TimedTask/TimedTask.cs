@@ -6,11 +6,13 @@ using System.Text;
 
 namespace Vino.Core.TimedTask
 {
-    [Table("timed_task")]
     public class TimedTask
     {
         [MaxLength(32)]
         public string Id { set; get; }
+
+        [MaxLength(64)]
+        public string Name { set; get; }
 
         [MaxLength(256)]
         public string Identifier { set; get; }

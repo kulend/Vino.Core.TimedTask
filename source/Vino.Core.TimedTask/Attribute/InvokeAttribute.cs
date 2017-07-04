@@ -7,6 +7,8 @@ namespace Vino.Core.TimedTask.Attribute
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class InvokeAttribute : System.Attribute
     {
+        public string Name { set; get; }
+
         public bool IsEnabled { get; set; } = true;
 
         /// <summary>

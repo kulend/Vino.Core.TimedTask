@@ -53,6 +53,8 @@ namespace Vino.Core.TimedTask
             //取得所有方法
             foreach (var clazz in JobTypeCollection)
             {
+                var clazzTimedTaskAttr = clazz.GetCustomAttribute<TimedTaskAttribute>();
+                var clazzName = string.IsNullOrEmpty(clazzTimedTaskAttr.Name) ? clazz.Name : clazzTimedTaskAttr.Name;
                 foreach (var method in 
                     clazz.DeclaredMethods.Where(x=>x.GetCustomAttributes<InvokeAttribute>(true).Any()))
                 {
@@ -79,8 +81,10 @@ namespace Vino.Core.TimedTask
                         }
                         Task.Factory.StartNew(() =>
                         {
+                            var invokeName = string.IsNullOrEmpty(invoke.Name) ? method.Name : invoke.Name;
                             var task = new TimedTask();
                             task.Id = new Guid().ToString();
+                            task.Name = clazzName + "." + invokeName;
                             task.Identifier = clazz.FullName + "." + method.Name;
                             task.BeginTime = invoke.BeginTime;
                             task.ExpireTime = invoke.ExpireTime;
@@ -190,8 +194,6 @@ namespace Vino.Core.TimedTask
 
             var instance = Activator.CreateInstance(clazz.AsType(), argtypes);
             var paramtypes = method.GetParameters().Select(x => services.GetService(x.ParameterType)).ToArray();
-            var taskAttr = clazz.GetCustomAttribute<TimedTaskAttribute>();
-            var taskName = (taskAttr != null && !string.IsNullOrEmpty(taskAttr.Name)) ? taskAttr.Name : clazz.Name;
             var singleTaskAttr = method.GetCustomAttribute<SingleTaskAttribute>(true);
             lock (this)
             {
@@ -206,11 +208,11 @@ namespace Vino.Core.TimedTask
             {
                 if (IsZh)
                 {
-                    logger?.LogInformation($"[事务]{taskName} 开始执行...");
+                    logger?.LogInformation($"[事务]{task.Name} 开始执行...");
                 }
                 else
                 {
-                    logger?.LogInformation($"[Task]{taskName} Invoking...");
+                    logger?.LogInformation($"[Task]{task.Name} Invoking...");
                 }
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
@@ -218,13 +220,13 @@ namespace Vino.Core.TimedTask
                 sw.Stop();
                 if (IsZh)
                 {
-                    logger?.LogInformation($"[事务]{taskName} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
+                    logger?.LogInformation($"[事务]{task.Name} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
                 }
                 else
                 {
-                    logger?.LogInformation($"[Task]{taskName} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
+                    logger?.LogInformation($"[Task]{task.Name} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
                 }
-                Debug.WriteLine($"[Task]{taskName} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
+                Debug.WriteLine($"[Task]{task.Name} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
             }
             catch (Exception ex)
             {

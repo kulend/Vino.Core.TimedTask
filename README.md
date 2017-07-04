@@ -2,9 +2,11 @@
 基于.NET CORE的一个定时任务运行管理组件。
 
 * 版本发布
-    [2017.07.03] 版本 1.0.1.1
-        VinoTimedTask标注改为TimedTask。
+    <p>[2017.07.04] 版本 1.0.1.2</p>
+    <p>    Invoke标注添加Name属性，TimedTask添加Name属性。</p>
 
+    <p>[2017.07.03] 版本 1.0.1.1</p>
+    <p>    VinoTimedTask标注改为TimedTask。</p>
 
 * 安装方法
 Nuget：Install-Package Vino.Core.TimedTask
@@ -99,6 +101,7 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
     ```sql
         CREATE TABLE `tablename` (
         `Id` varchar(32) NOT NULL,
+        `Name` varchar(64) DEFAULT NULL,
         `AutoReset` bit(1) NOT NULL,
         `BeginTime` datetime(6) NOT NULL,
         `ExpireTime` datetime(6) NOT NULL,
