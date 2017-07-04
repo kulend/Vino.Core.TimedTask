@@ -90,6 +90,22 @@ Nuget：Install-Package Vino.Core.TimedTask.EntityFramework
             ...
         }
     ```
-
-
+    5. 自定义数据表名
+        <p>默认的表名为timed_task，如果需要自定义表名，则在MyDbContext的OnModelCreating方法中设置</p>
+    ```c#
+        modelBuilder.Entity<TimedTask>().ToTable("tablename");
+    ```
+        创建表sql（mysql）：
+    ```sql
+        CREATE TABLE `tablename` (
+        `Id` varchar(32) NOT NULL,
+        `AutoReset` bit(1) NOT NULL,
+        `BeginTime` datetime(6) NOT NULL,
+        `ExpireTime` datetime(6) NOT NULL,
+        `Identifier` varchar(256) DEFAULT NULL,
+        `Interval` int(11) NOT NULL,
+        `IsEnabled` bit(1) NOT NULL,
+        PRIMARY KEY (`Id`)
+        )
+    ```
 本项目部分代码参照并引用了Pomelo.AspNetCore.TimedJob相关代码
