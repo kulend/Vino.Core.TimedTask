@@ -10,11 +10,11 @@
     <Product>Vino.Core</Product>
     <PackageReleaseNotes>基于.NET CORE的一个定时任务运行管理组件。</PackageReleaseNotes>
     <PackageTags>Vino Task .NetCore TimedTask</PackageTags>
-    <Version>1.0.1.3</Version>
+    <Version>1.0.1.4</Version>
     <PackageProjectUrl>https://github.com/kulend/Vino.Core.TimedTask</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/kulend/Vino.Core.TimedTask/blob/master/LICENSE</PackageLicenseUrl>
-    <AssemblyVersion>1.0.1.3</AssemblyVersion>
-    <FileVersion>1.0.1.3</FileVersion>
+    <AssemblyVersion>1.0.1.4</AssemblyVersion>
+    <FileVersion>1.0.1.4</FileVersion>
     <RepositoryUrl>https://github.com/kulend/Vino.Core.TimedTask</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>

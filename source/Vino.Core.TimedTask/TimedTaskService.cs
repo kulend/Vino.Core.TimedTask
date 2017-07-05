@@ -14,12 +14,12 @@ using Vino.Core.TimedTask.Database;
 
 namespace Vino.Core.TimedTask
 {
-    public class TimedTaskService
+    public class TimedTaskService: ITimedTaskService
     {
         /// <summary>
         /// 语言
         /// </summary>
-        private static bool IsZh = "zh-cn".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase) 
+        private static readonly bool IsZh = "zh-cn".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase) 
                                    || "zh-tw".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase)
                                    || "zh-hk".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase);
 
@@ -272,7 +272,7 @@ namespace Vino.Core.TimedTask
             if (timedTaskProvider != null)
             {
                 var task = timedTaskProvider.GetTaskById(taskId);
-                if (task != null)
+                if (task != null && task.IsEnabled)
                 {
                     if (string.IsNullOrEmpty(task.Identifier))
                     {

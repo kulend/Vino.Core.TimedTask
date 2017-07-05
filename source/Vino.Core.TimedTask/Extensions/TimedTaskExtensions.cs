@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddTimedTask(this IServiceCollection self)
         {
             self.TryAddSingleton<IAssemblyLocator, VinoAssemblyLocator>();
-            return self.AddSingleton<TimedTaskService>();
+            return self.AddSingleton<ITimedTaskService, TimedTaskService>();
         }
     }
 }
@@ -24,13 +24,13 @@ namespace Microsoft.AspNetCore.Builder
     {
         public static IApplicationBuilder UseTimedTask(this IApplicationBuilder self)
         {
-            self.ApplicationServices.GetRequiredService<TimedTaskService>();
+            self.ApplicationServices.GetRequiredService<ITimedTaskService>();
             return self;
         }
 
         public static IServiceProvider UseTimedTask(this IServiceProvider self)
         {
-            self.GetRequiredService<TimedTaskService>();
+            self.GetRequiredService<ITimedTaskService>();
             return self;
         }
     }
