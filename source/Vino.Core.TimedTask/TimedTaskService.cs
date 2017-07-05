@@ -16,6 +16,9 @@ namespace Vino.Core.TimedTask
 {
     public class TimedTaskService
     {
+        /// <summary>
+        /// 语言
+        /// </summary>
         private static bool IsZh = "zh-cn".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase) 
                                    || "zh-tw".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase)
                                    || "zh-hk".Equals(System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase);
@@ -33,6 +36,11 @@ namespace Vino.Core.TimedTask
         public static Dictionary<string, Timer> StaticTimers { get; private set; } = new Dictionary<string, Timer>();
         public static Dictionary<string, Timer> DbTimers { get; private set; } = new Dictionary<string, Timer>();
 
+        /// <summary>
+        /// 设置定时服务是否可用
+        /// </summary>
+        public bool IsEnable { set; get; } = true;
+
         public TimedTaskService(IAssemblyLocator locator, IServiceProvider services)
         {
             this.services = services;
@@ -42,7 +50,7 @@ namespace Vino.Core.TimedTask
             var asm = locator.GetAssemblies();
             foreach (var x in asm)
             {
-                //查找带有VinoTimedTaskAttribute的类
+                //查找带有TimedTaskAttribute的类
                 var types = x.DefinedTypes.Where(y => y.GetCustomAttribute(typeof(TimedTaskAttribute), true) != null);
                 foreach (var type in types)
                 {
@@ -83,7 +91,7 @@ namespace Vino.Core.TimedTask
                         {
                             var invokeName = string.IsNullOrEmpty(invoke.Name) ? method.Name : invoke.Name;
                             var task = new TimedTask();
-                            task.Id = new Guid().ToString();
+                            task.Id = Guid.NewGuid().ToString("N");
                             task.Name = clazzName + "." + invokeName;
                             task.Identifier = clazz.FullName + "." + method.Name;
                             task.BeginTime = invoke.BeginTime;
@@ -167,7 +175,7 @@ namespace Vino.Core.TimedTask
             }
         }
 
-        public bool Execute(TimedTask task, TypeInfo clazz, MethodInfo method)
+        private bool Execute(TimedTask task, TypeInfo clazz, MethodInfo method)
         {
             var identifier = task.Identifier;
 
@@ -197,6 +205,10 @@ namespace Vino.Core.TimedTask
             var singleTaskAttr = method.GetCustomAttribute<SingleTaskAttribute>(true);
             lock (this)
             {
+                if (!IsEnable)
+                {
+                    return false;
+                }
                 if (singleTaskAttr != null && singleTaskAttr.IsSingleTask 
                     && TaskStatus.ContainsKey(task.Id) && TaskStatus[task.Id])
                 {
@@ -235,5 +247,77 @@ namespace Vino.Core.TimedTask
             TaskStatus[task.Id] = false;
             return true;
         }
+
+        /// <summary>
+        /// 重置所有数据库定时服务
+        /// </summary>
+        public void ResetDbTask()
+        {
+            ExecuteDbTask();
+        }
+
+        /// <summary>
+        /// 重置某一定时服务
+        /// </summary>
+        /// <param name="taskId"></param>
+        public void ResetDbTask(string taskId)
+        {
+            if (DbTimers.ContainsKey(taskId))
+            {
+                DbTimers[taskId].Dispose();
+                DbTimers.Remove(taskId);
+            }
+            TaskStatus[taskId] = false;
+
+            if (timedTaskProvider != null)
+            {
+                var task = timedTaskProvider.GetTaskById(taskId);
+                if (task != null)
+                {
+                    if (string.IsNullOrEmpty(task.Identifier))
+                    {
+                        return;
+                    }
+                    var clazzName = task.Identifier.Substring(0, task.Identifier.LastIndexOf('.'));
+                    var functionName = task.Identifier.Substring(task.Identifier.LastIndexOf('.') + 1);
+                    var clazz = JobTypeCollection.SingleOrDefault(x => x.FullName == clazzName);
+                    if (clazz == null)
+                    {
+                        return;
+                    }
+                    var method = clazz.GetMethod(functionName);
+                    if (method == null)
+                    {
+                        return;
+                    }
+
+                    //需要延时的时间
+                    int delta = 0;
+                    if (task.BeginTime == default(DateTime))
+                    {
+                        task.BeginTime = DateTime.Now;
+                    }
+                    else
+                    {
+                        delta = Convert.ToInt32((task.BeginTime - DateTime.Now).TotalMilliseconds);
+                    }
+                    if (delta < 0)
+                    {
+                        delta = delta % task.Interval;
+                        if (delta < 0)
+                            delta += task.Interval;
+                    }
+                    Task.Factory.StartNew(() =>
+                    {
+                        var timer = new Timer(t =>
+                        {
+                            Execute(task, clazz, method);
+                        }, null, delta, task.AutoReset ? task.Interval : 0);
+                        DbTimers.Add(task.Id, timer);
+                    });
+                }
+            }
+        }
+
     }
 }

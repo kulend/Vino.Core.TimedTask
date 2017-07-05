@@ -29,5 +29,10 @@ namespace Vino.Core.TimedTask.EntityFramework
                 //})
                 .ToList();
         }
+
+        public TimedTask GetTaskById(string id)
+        {
+            return _db.TimedTasks.SingleOrDefault(x => x.Id.Equals(id));
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace Vino.Core.TimedTask.EntityFramework
 {
     public static class TimedTaskDbContextExtensions
     {
-        public static ModelBuilder SetupTimedJobs(this ModelBuilder self)
+        public static ModelBuilder SetupTimedTask(this ModelBuilder self)
         {
             return self.Entity<TimedTask>(e =>
             {

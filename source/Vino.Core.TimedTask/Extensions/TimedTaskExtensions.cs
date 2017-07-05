@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vino.Core.TimedTask;
 using Vino.Core.TimedTask.Common;
 
@@ -11,8 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddTimedTask(this IServiceCollection self)
         {
-            return self.AddSingleton<IAssemblyLocator, VinoAssemblyLocator>()
-                .AddSingleton<TimedTaskService>();
+            self.TryAddSingleton<IAssemblyLocator, VinoAssemblyLocator>();
+            return self.AddSingleton<TimedTaskService>();
         }
     }
 }

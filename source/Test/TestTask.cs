@@ -9,7 +9,7 @@ namespace Test
     [TimedTask]
     public class TestTask
     {
-        [Invoke(Interval = 5000)]
+        [Invoke(Interval = 5000, Name = "测试")]
         [SingleTask]
         public void Run()
         {
