@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyModel;
 
 namespace Vino.Core.TimedTask.Common

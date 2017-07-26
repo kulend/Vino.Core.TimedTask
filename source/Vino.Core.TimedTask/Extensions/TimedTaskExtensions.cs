@@ -22,12 +22,6 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class TimedTaskExtensions
     {
-        public static IApplicationBuilder UseTimedTask(this IApplicationBuilder self)
-        {
-            self.ApplicationServices.GetRequiredService<ITimedTaskService>();
-            return self;
-        }
-
         public static IServiceProvider UseTimedTask(this IServiceProvider self)
         {
             self.GetRequiredService<ITimedTaskService>();

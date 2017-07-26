@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Vino.Core.TimedTask.Common;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Vino.Core.TimedTask.Attribute;
 using Vino.Core.TimedTask.Database;
 
@@ -43,9 +43,13 @@ namespace Vino.Core.TimedTask
 
         public TimedTaskService(IAssemblyLocator locator, IServiceProvider services)
         {
-            this.services = services;
             this.locator = locator;
-            this.logger = services.GetService<ILogger>();
+            this.services = services;
+            ILoggerFactory loggerFactory = new LoggerFactory()
+                .AddConsole()
+                .AddDebug();
+            this.logger = loggerFactory.CreateLogger<TimedTaskService>();
+            //this.logger = services.GetService<ILogger>();
             this.timedTaskProvider = services.GetService<ITimedTaskProvider>();
             var asm = locator.GetAssemblies();
             foreach (var x in asm)
