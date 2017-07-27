@@ -13,5 +13,7 @@ namespace Vino.Core.TimedTask.Database
         IList<TimedTask> GetTasks();
 
         TimedTask GetTaskById(string id);
+
+        void AddLog(TimedTaskLog log);
     }
 }

@@ -26,5 +26,7 @@ namespace Vino.Core.TimedTask
         public DateTime BeginTime { set; get; }
 
         public DateTime ExpireTime { set; get; }
+
+        public int RunTimes { set; get; }
     }
 }

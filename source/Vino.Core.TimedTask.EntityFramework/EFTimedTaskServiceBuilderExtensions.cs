@@ -11,7 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddEntityFrameworkTimedTask<TContext>(this IServiceCollection self)
             where TContext : ITimedTaskContext
         {
-            return self.AddScoped<ITimedTaskProvider, EFTimedTaskProvider<TContext>>();
+            return self.AddTransient<ITimedTaskProvider, EFTimedTaskProvider<TContext>>();
         }
     }
 }

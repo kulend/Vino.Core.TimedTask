@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vino.Core.TimedTask.Attribute;
 using Vino.Core.TimedTask.Database;
+using Vino.Core.TimedTask.Helper;
 
 namespace Vino.Core.TimedTask
 {
@@ -29,6 +30,7 @@ namespace Vino.Core.TimedTask
         private IServiceProvider services { get; set; }
 
         private ITimedTaskProvider timedTaskProvider { get; set; }
+        private ITimedTaskProvider timedTaskLogProvider { get; set; }
 
         private List<TypeInfo> JobTypeCollection { get; set; } = new List<TypeInfo>();
 
@@ -51,6 +53,7 @@ namespace Vino.Core.TimedTask
             this.logger = loggerFactory.CreateLogger<TimedTaskService>();
             //this.logger = services.GetService<ILogger>();
             this.timedTaskProvider = services.GetService<ITimedTaskProvider>();
+            this.timedTaskLogProvider = services.GetService<ITimedTaskProvider>();
             var asm = locator.GetAssemblies();
             foreach (var x in asm)
             {
@@ -76,14 +79,14 @@ namespace Vino.Core.TimedTask
                         && (i.ExpireTime >= DateTime.Now || i.ExpireTime == default(DateTime))))
                     {
                         //需要延时的时间
-                        int delta = 0;
+                        long delta = 0;
                         if (invoke.BeginTime == default(DateTime))
                         {
                             invoke.BeginTime = DateTime.Now;
                         }
                         else
                         {
-                            delta = Convert.ToInt32((invoke.BeginTime - DateTime.Now).TotalMilliseconds);
+                            delta = Convert.ToInt64((invoke.BeginTime - DateTime.Now).TotalMilliseconds);
                         }
                         if (delta < 0)
                         {
@@ -95,7 +98,7 @@ namespace Vino.Core.TimedTask
                         {
                             var invokeName = string.IsNullOrEmpty(invoke.Name) ? method.Name : invoke.Name;
                             var task = new TimedTask();
-                            task.Id = Guid.NewGuid().ToString("N");
+                            task.Id = CryptHelper.EncryptMD5(clazzName + "." + invokeName);
                             task.Name = clazzName + "." + invokeName;
                             task.Identifier = clazz.FullName + "." + method.Name;
                             task.BeginTime = invoke.BeginTime;
@@ -103,10 +106,12 @@ namespace Vino.Core.TimedTask
                             task.Interval = invoke.Interval;
                             task.AutoReset = invoke.AutoReset;
                             task.IsEnabled = invoke.IsEnabled;
+                            var deltaSpan = new TimeSpan(delta*10000);
+                            var IntervalSpan = new TimeSpan((invoke.AutoReset ? invoke.Interval : 0) * 10000);
                             var timer = new Timer(t =>
                             {
                                 Execute(task, clazz, method);
-                            }, null, delta, invoke.AutoReset ? invoke.Interval : 0);
+                            }, null, deltaSpan, IntervalSpan);
                             StaticTimers.Add(task.Id, timer);
                         });
                     }
@@ -141,25 +146,21 @@ namespace Vino.Core.TimedTask
                     var clazzName = task.Identifier.Substring(0, task.Identifier.LastIndexOf('.'));
                     var functionName = task.Identifier.Substring(task.Identifier.LastIndexOf('.') + 1);
                     var clazz = JobTypeCollection.SingleOrDefault(x => x.FullName == clazzName);
-                    if (clazz == null)
-                    {
-                        continue;
-                    }
-                    var method = clazz.GetMethod(functionName);
+                    var method = clazz?.GetMethod(functionName);
                     if (method == null)
                     {
                         continue;
                     }
 
                     //需要延时的时间
-                    int delta = 0;
+                    long delta = 0;
                     if (task.BeginTime == default(DateTime))
                     {
                         task.BeginTime = DateTime.Now;
                     }
                     else
                     {
-                        delta = Convert.ToInt32((task.BeginTime - DateTime.Now).TotalMilliseconds);
+                        delta = Convert.ToInt64((task.BeginTime - DateTime.Now).TotalMilliseconds);
                     }
                     if (delta < 0)
                     {
@@ -169,10 +170,12 @@ namespace Vino.Core.TimedTask
                     }
                     Task.Factory.StartNew(() =>
                     {
+                        var deltaSpan = new TimeSpan(delta * 10000);
+                        var IntervalSpan = new TimeSpan((task.AutoReset ? task.Interval : 0) * 10000);
                         var timer = new Timer(t =>
                         {
                             Execute(task, clazz, method);
-                        }, null, delta, task.AutoReset ? task.Interval : 0);
+                        }, null, deltaSpan, IntervalSpan);
                         DbTimers.Add(task.Id, timer);
                     });
                 }
@@ -220,6 +223,8 @@ namespace Vino.Core.TimedTask
                 }
                 TaskStatus[task.Id] = true;
             }
+
+            var dtStart = DateTime.Now;
             try
             {
                 if (IsZh)
@@ -234,6 +239,7 @@ namespace Vino.Core.TimedTask
                 sw.Start();
                 method.Invoke(instance, paramtypes);
                 sw.Stop();
+                var dtEnd = DateTime.Now;
                 if (IsZh)
                 {
                     logger?.LogInformation($"[事务]{task.Name} 执行结束，耗时{sw.ElapsedMilliseconds}毫秒。");
@@ -243,9 +249,38 @@ namespace Vino.Core.TimedTask
                     logger?.LogInformation($"[Task]{task.Name} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
                 }
                 Debug.WriteLine($"[Task]{task.Name} Finish, takes {sw.ElapsedMilliseconds} milliseconds.");
+
+                //写数据库log
+                if (timedTaskLogProvider != null)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        TimedTaskLog log = new TimedTaskLog();
+                        log.TaskId = task.Id;
+                        log.BeginTime = dtStart;
+                        log.EndTime = dtEnd;
+                        log.Duration = sw.ElapsedMilliseconds;
+                        log.Result = "success";
+                        timedTaskLogProvider.AddLog(log);
+                    });
+                }
             }
             catch (Exception ex)
             {
+                if (timedTaskLogProvider != null)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        TimedTaskLog log = new TimedTaskLog();
+                        log.TaskId = task.Id;
+                        log.BeginTime = dtStart;
+                        log.EndTime = DateTime.Now;
+                        log.Duration = Convert.ToInt64((dtStart - DateTime.Now).TotalMilliseconds);
+                        log.Result = "fail";
+                        timedTaskLogProvider.AddLog(log);
+                    });
+                }
+
                 logger?.LogError(ex.ToString());
             }
             TaskStatus[task.Id] = false;

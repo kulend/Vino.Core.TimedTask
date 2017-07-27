@@ -7,6 +7,8 @@ namespace Vino.Core.TimedTask.EntityFramework
     {
         DbSet<TimedTask> TimedTasks { get; set; }
 
+        DbSet<TimedTaskLog> TimedTaskLogs { get; set; }
+
         int SaveChanges();
     }
 }
